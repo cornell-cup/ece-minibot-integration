@@ -260,39 +260,8 @@ int motorRight_brake(void){
 	return 0;
 }
 
-/*void motorPID(void){
-	float p, i, d; // proportional, integral and derivative gains
 
-	float currentSpeed, targetSpeed;
-	float error, integral, derivative;
-
-	float last_error, dt;
-
-	float c; // control term for pid
-
-	error = currentSpeed - targetSpeed;
-
-	integral += error; // accumulating error
-
-	// code here to detect error zero crossing to reset/alter the error and integral terms
-	// ...
-	// ...
-	// ...
-
-	derivative = (error - last_error)/dt; // discrete derivative term
-
-	c = p*error + i*integral + d*derivative;
-
-	// code here to use c to feed pwm module
-	// ...
-	// ...
-	// ...
-
-
-} */
-
-
-float motorPID(void){
+float motorLeft_PID(void){
 	// Set constants here
 	  float Accumulator = 0;
 	  static float PID = 0;
@@ -303,7 +272,32 @@ float motorPID(void){
 
 	// Calculate the PID
 	  prevError = error;
-	  error = getRPM_L() - TARGET_SPEED;
+	  error = getRPM_L() - TARGET_SPEED_L;
+
+	  if((error < 0 && prevError > 0) || (error > 0 && prevError <0)){
+		  Accumulator = 0;
+	  }
+
+	  Accumulator += error;  // accumulator is sum of errors
+	  PID += -error*PTerm;     // start with proportional gain
+	  PID += ITerm*Accumulator; // add integral gain and error accumulation
+	  PID += DTerm*(error-prevError); // differential gain comes next
+
+	  return PID;
+}
+
+float motorRight_PID(void){
+	// Set constants here
+	  float Accumulator = 0;
+	  static float PID = 0;
+
+	  static float error = 0;
+	  float prevError = 0;
+
+
+	// Calculate the PID
+	  prevError = error;
+	  error = getRPM_R() - TARGET_SPEED_R;
 
 	  if((error < 0 && prevError > 0) || (error > 0 && prevError <0)){
 		  Accumulator = 0;

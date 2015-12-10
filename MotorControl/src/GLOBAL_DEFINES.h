@@ -23,7 +23,8 @@
 #define PULSEIN_PIN_L		8
 #define PULSEIN_PIN_R		11
 
-float TARGET_SPEED; //in RPM
+float TARGET_SPEED_L; //in RPM
+float TARGET_SPEED_R; //in RPM
 #define PTerm  0.075
 #define ITerm  0.00
 #define DTerm  0.01

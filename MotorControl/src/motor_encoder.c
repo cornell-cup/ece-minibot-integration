@@ -13,13 +13,10 @@ float CPR = 64.0;
 float gear_ratio = 30.0;
 float RPM_L;
 float RPM_R;
-long prevTime;
-long currTime;
 float usecPerCount_L = 0;
 float usecPerCount_R = 0;
 
 int initEncoder(void){
-	currTime = 0;
 
 	// Initialize GPIO pins for left and right input pulse reading
 	mraa_gpio_context PULSEIN_L = mraa_gpio_init(PULSEIN_PIN_L);
@@ -58,6 +55,8 @@ float getusecPerCount_R(void){
 }
 
 void ISR_PULSEIN_L(void* args){
+	static long prevTime = 0;
+	static long currTime = 0;
 	prevTime = currTime;
 	currTime = absoluteTime();
 	usecPerCount_L = currTime - prevTime;
@@ -65,7 +64,8 @@ void ISR_PULSEIN_L(void* args){
 }
 
 void ISR_PULSEIN_R(void* args){
-
+	static long prevTime = 0;
+	static long currTime = 0;
 	prevTime = currTime;
 	currTime = absoluteTime();
 	usecPerCount_R = currTime - prevTime;

@@ -17,96 +17,57 @@
 
 int main()
 {
-	int sum;
+	int left_speed;
+	int right_speed;
+	float duty_L, PID_L;
+	float duty_R, PID_R;
 
-	printf("Please enter a value for the Target RPM");
-	scanf("%d", &sum );
-
-	TARGET_SPEED = sum;
-
-	//float RPM;
-	//float usec;
-	float duty;
-	float PID;
 	motorLeft_direction(MOTOR_CW);
-	motorLeft_drive(0.5);
+	motorLeft_drive(0.05);
+	motorRight_direction(MOTOR_CW);
+	motorRight_drive(0.05);
+
+	printf("Left Target RPM:");
+	scanf("%d", &left_speed);
+	printf("Right Target RPM:");
+	scanf("%d", &right_speed);
+
+
+	TARGET_SPEED_L = left_speed;
+	TARGET_SPEED_R = right_speed;
+
 	sleep(1);
 	initEncoder();
-	//int i=0;
+
+	int i = 0; //for print statements
 
 	while(1){
 		usleep(20000);
-		PID = motorPID();
-		duty = PID/1000.0;
-		if(duty <0) duty =0;
-		if(duty >0.95) duty =0.95;
-		motorLeft_drive(duty);
+		PID_L = motorLeft_PID();
+		duty_L = PID_L/1000.0;
+		if(duty_L <0) duty_L =0;
+		if(duty_L >0.95) duty_L =0.95;
+		motorLeft_drive(duty_L);
 
-		/*
+		PID_R = motorRight_PID();
+		duty_R = PID_R/1000.0;
+		if(duty_R <0) duty_R =0;
+		if(duty_R >0.95) duty_R =0.95;
+		motorRight_drive(duty_R);
+
+		//Prints RPM and period for testing
+		float RPM_L, usec_L;
+		float RPM_R, usec_R;
 		if(++i ==30) {
-			RPM = getRPM_L();
-			usec = getusecPerCount_L();
-			//fprintf(stdout, "PID: %.1f   RPM: %.1f   duty: %.3f   usec: %.1f\n", (float)PID, (float)RPM, duty, usec);
+			RPM_L = getRPM_L();
+			usec_L = getusecPerCount_L();
+			RPM_R = getRPM_R();
+			usec_R = getusecPerCount_R();
+			fprintf(stdout, "LEFT RPM: %.1f  usec: %.1f\n", (float)RPM_L, usec_L);
+			fprintf(stdout, "RIGHT RPM: %.1f  usec: %.1f\n", (float)RPM_R, usec_R);
+			fprintf(stdout, "\n");
 			i=0;
 		}
-		*/
-
 	}
-
-	while (1){
-		float duty = 0.05;
-
-		// start in the CW direction
-		motorLeft_direction(MOTOR_CW);
-		motorRight_direction(MOTOR_CW);
-
-		// ramp up to 95%
-		while (duty < 0.95){
-			duty += DUTY_STEP;
-			motorLeft_drive(duty);
-			motorRight_drive(duty);
-			usleep(DUTY_DT_US);
-		}
-
-		// ramp down to 5%
-		while (duty > 0.05){
-			duty -= DUTY_STEP;
-			motorLeft_drive(duty);
-			motorRight_drive(duty);
-			usleep(DUTY_DT_US);
-		}
-
-		// brake for 0.5 seconds
-		motorLeft_brake();
-		motorRight_brake();
-		usleep(500000);
-
-		// go to CCW direction
-		motorLeft_direction(MOTOR_CCW);
-		motorRight_direction(MOTOR_CCW);
-
-		// ramp up to 95%
-		while (duty < 0.95){
-			duty += DUTY_STEP;
-			motorLeft_drive(duty);
-			motorRight_drive(duty);
-			usleep(DUTY_DT_US);
-		}
-
-		// ramp down to 5%
-		while (duty > 0.05){
-			duty -= DUTY_STEP;
-			motorLeft_drive(duty);
-			motorRight_drive(duty);
-			usleep(DUTY_DT_US);
-		}
-
-		// brake for 0.5 seconds
-		motorLeft_brake();
-		motorRight_brake();
-		usleep(500000);
-
-	}
-
 	return MRAA_SUCCESS;
 }
