@@ -13,13 +13,16 @@
 #define NULL   ((void *) 0)
 #endif
 
-Encoder encoder = new Encoder();
-mraa::Pwm PWM_MOTOR = NULL;
-mraa::Gpio DIRECTION_MOTOR = NULL;
-mraa::Gpio BRAKE_MOTOR = NULL;
+
+mraa::Pwm* PWM_MOTOR = NULL;
+mraa::Gpio* DIRECTION_MOTOR = NULL;
+mraa::Gpio* BRAKE_MOTOR = NULL;
 int pwm;
 int MOTOR_1_PIN;
 int MOTOR_2_PIN;
+int ENCODER_PIN;
+float TARGET_SPEED;
+Encoder* encoder;
 
 int oldDirection = -1;
 
@@ -29,10 +32,12 @@ Motor::Motor() {
 
 }
 
-Motor::Motor(int pin1, int pin2) {
+Motor::Motor(int pin1, int pin2, int enc_pin, float target) {
 	MOTOR_1_PIN = pin1;
 	MOTOR_2_PIN = pin2;
-
+	ENCODER_PIN = enc_pin;
+	TARGET_SPEED = target;
+	encoder = new Encoder(ENCODER_PIN);
 }
 
 Motor::~Motor() {
@@ -44,7 +49,7 @@ int Motor::motor_drive(float duty){
 	 * These are in float -> eg 0.3 = 30% duty
 	 *
 	 */
-	mraa_result_t result;
+	mraa::Result result;
 
 	if (duty > MAX_DUTY){
 		duty = MAX_DUTY;
@@ -54,15 +59,15 @@ int Motor::motor_drive(float duty){
 		duty = MIN_DUTY;
 	}
 
-	result = PWM_MOTOR.write(duty);
+	result = PWM_MOTOR->write(duty);
 
-
-	if (result == MRAA_SUCCESS){
+	if (result == mraa::SUCCESS){
 		return 0;
 	}
 	else{
 		return -1;
 	}
+
 }
 
 int Motor::motor_direction(int direction){
@@ -108,13 +113,13 @@ int Motor::motor_direction(int direction){
 	}
 
 	if (direction == MOTOR_CCW){
-		mraa::Pwm*PWM_MOTOR = new mraa::Pwm(MOTOR_1_PIN);
-		mraa::Gpio* DIRECTION_MOTOR = new mraa::Gpio(MOTOR_2_PIN);
+		PWM_MOTOR = new mraa::Pwm(MOTOR_1_PIN);
+		DIRECTION_MOTOR = new mraa::Gpio(MOTOR_2_PIN);
 		pwm = MOTOR_1_PIN;
 	}
 	else if (direction == MOTOR_CW){
-		mraa::Pwm* PWM_MOTOR = new mraa::Pwm(MOTOR_2_PIN);
-		mraa::Gpio* DIRECTION_MOTOR = new mraa::Gpio(MOTOR_1_PIN);
+		PWM_MOTOR = new mraa::Pwm(MOTOR_2_PIN);
+		DIRECTION_MOTOR = new mraa::Gpio(MOTOR_1_PIN);
 		pwm = MOTOR_2_PIN;
 	}
 
@@ -124,12 +129,12 @@ int Motor::motor_direction(int direction){
 	}
 
 	// configure pwm settings
-	PWM_MOTOR.period_us(PERIOD_US);
-	PWM_MOTOR.enable(true);
+	PWM_MOTOR->period_us(PERIOD_US);
+	PWM_MOTOR->enable(true);
 
 	// this sets pwm to work in correct direction
-	DIRECTION_MOTOR.dir(mraa::DIR_OUT);
-	DIRECTION_MOTOR.write(0);
+	DIRECTION_MOTOR->dir(mraa::DIR_OUT);
+	DIRECTION_MOTOR->write(0);
 
 	return 0;
 }
@@ -138,8 +143,8 @@ int Motor::motor_direction(int direction){
 int Motor::motor_brake(void){
 	// Free PWM so that pin can be used as GPIO
 	if (PWM_MOTOR != NULL){
-		mraa_pwm_close(PWM_MOTOR_LEFT);
-		PWM_MOTOR_LEFT = NULL;
+		delete PWM_MOTOR;
+		PWM_MOTOR = NULL;
 	}
 
 	oldDirection = -1;
@@ -151,12 +156,12 @@ int Motor::motor_brake(void){
 	// Since direction pin is always set to 0 in motorLeft_direction(),
 	// set brake pin to also be 0
 
-	BRAKE_MOTOR = mraa_gpio_init(pwm);
+	BRAKE_MOTOR = new mraa::Gpio(pwm);
 	if (BRAKE_MOTOR == NULL){
 		return -1;
 	}
 
-	BRAKE_MOTOR.write(0);
+	BRAKE_MOTOR->write(0);
 	delete BRAKE_MOTOR;
 
 	return 0;
@@ -172,7 +177,7 @@ float Motor::motor_PID(void){
 
 	// Calculate the PID
 	prevError = error;
-	error = encoder.getRPM() - TARGET_SPEED_L;
+	error = encoder->getRPM() - TARGET_SPEED;
 
 	if((error < 0 && prevError > 0) || (error > 0 && prevError <0)){
 		Accumulator = 0;

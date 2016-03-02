@@ -5,7 +5,7 @@
  *      Author: Claire
  */
 
-#include "mraa.h"
+#include "mraa.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,8 +47,8 @@ volatile int direction = DIRECTION_STOP;
 int f_logImu = 0;
 
 //Create left and right motors
-Motor motorLeft = new Motor(MOTOR_LEFT_1_PIN, MOTOR_LEFT_2_PIN);
-Motor motorRight = new Motor(MOTOR_RIGHT_1_PIN, MOTOR_RIGHT_2_PIN);
+Motor motorLeft = *(new Motor(MOTOR_LEFT_1_PIN, MOTOR_LEFT_2_PIN, PULSEIN_PIN_L, TARGET_SPEED_L));
+Motor motorRight = *(new Motor(MOTOR_RIGHT_1_PIN, MOTOR_RIGHT_2_PIN, PULSEIN_PIN_R, TARGET_SPEED_R));
 
 int main()
 {

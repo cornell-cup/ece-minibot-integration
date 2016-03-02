@@ -8,7 +8,7 @@
 #ifndef MOTOR_H_
 #define MOTOR_H_
 
-#include "mraa.h"
+#include "mraa.hpp"
 
 #define MOTOR_CW	0
 #define MOTOR_CCW	1
@@ -19,7 +19,7 @@
 class Motor {
 public:
 	Motor();
-	Motor(int, int);
+	Motor(int, int, int, float);
 	virtual ~Motor();
 
 	/*

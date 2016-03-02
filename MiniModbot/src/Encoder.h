@@ -8,20 +8,24 @@
 #ifndef ENCODER_H_
 #define ENCODER_H_
 
-#include "mraa.h"
+#include "mraa.hpp"
 
-static class Encoder {
+class Encoder {
 public:
 	Encoder();
+	Encoder(int);
 	virtual ~Encoder();
 
 	int initEncoder();
 	float getRPM();
 	float getusecPerCount();
-	void ISR_PULSEIN(void* args);
+
+
 
 private:
-	long Encoder::absoluteTime(void);
+	long absoluteTime(void);
+	void ISR_PULSEIN(void* args);
+
 };
 
 
